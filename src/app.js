@@ -1,20 +1,16 @@
 const express = require("express");
-const app = new express();
+const app = express();
 
-// "get()" handles only GET requests.
+//QueryParameters APIcall - http://localhost:3000/user?userId=6&password=testing
+//OP = {userId:'6',password:'testing'}
 app.get("/user", (req, res) => {
-  res.send("Kumar");
-});
-app.post("/user", (req, res) => {
-  res.send("data saved into DB");
-});
-app.delete("/user", (req, res) => {
-  res.send("data deleted from DB");
+  console.log(req.query); //obj
 });
 
-// "use" handles all HTTP methods requests.
-app.use("/test", (req, res) => {
-  res.send("test from server");
+//RouteParameters APIcall - http://localhost:3000/home/8/Kumar
+//OP = {ID:'8',NAME:'Kumar'}
+app.get("/home/:ID/:NAME", (req, res) => {
+  console.log(req.params); //obj
 });
 
 app.listen(3000, function () {
