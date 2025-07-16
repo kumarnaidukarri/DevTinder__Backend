@@ -1,25 +1,30 @@
 const express = require("express");
 const app = express();
 
-// The actual function which sends the "Response" back to client during API call is called 'Request Handler Function' or 'Route Handler'.
-/* a middleware is a function that runs before the final route handler. mostly used for logging, Authentication, Validation.
-  'next' parameter and next() to call next middleware function*/
-// we can send only 'ONE RESPONSE' for a single API call.
-app.get(
-  "/home",
-  (req, res, next) => {
-    console.log("Middleware 1");
-    next(); //call next middleware function
-  },
-  (req, res, next) => {
-    console.log("Middleware 2");
-    next();
-  },
-  (req, res, next) => {
-    console.log("Response Handler or Route Handler or Request Handler");
-    res.send("Response 3");
+// Handle Auth Middleware for all GET POST, ... requests
+app.use("/admin", (req, res, next) => {
+  console.log("Admin Auth is checking ...");
+  const token = "xyzdwsd"; //client token
+  const isAdminAuthorized = token === "xyz";
+  if (!isAdminAuthorized) {
+    res.status(401).send("Unauthorized request");
+  } else {
+    // admin auth is verified
+    next(); //calls next middleware related to "/admin" path
   }
-);
+});
+
+app.get("/user", (req, res) => {
+  // no auth needed
+  res.send("User Data Sent");
+});
+
+app.get("/admin/getAllData", (req, res) => {
+  res.send("All Data Sent");
+});
+app.get("/admin/deleteUser", (req, res) => {
+  res.send("Deleted a user");
+});
 
 app.listen(3000, function () {
   console.log("Server listening on port 3000 ...");
