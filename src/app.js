@@ -1,29 +1,25 @@
 const express = require("express");
 const app = express();
 
-// Handle Auth Middleware for all GET POST, ... requests
-app.use("/admin", (req, res, next) => {
-  console.log("Admin Auth is checking ...");
-  const token = "xyzdwsd"; //client token
-  const isAdminAuthorized = token === "xyz";
-  if (!isAdminAuthorized) {
-    res.status(401).send("Unauthorized request");
-  } else {
-    // admin auth is verified
-    next(); //calls next middleware related to "/admin" path
-  }
-});
+const { adminAuth, userAuth } = require("./middlewares/auth.js");
 
-app.get("/user", (req, res) => {
-  // no auth needed
-  res.send("User Data Sent");
-});
-
+// USE(), adminAuth is used for all "admin routes".
+app.use("/admin", adminAuth);
 app.get("/admin/getAllData", (req, res) => {
   res.send("All Data Sent");
 });
 app.get("/admin/deleteUser", (req, res) => {
   res.send("Deleted a user");
+});
+
+// userAuth is used for some specific "user routes".
+app.get("/user", userAuth, (req, res) => {
+  //using userAuth
+  res.send("User Data Sent");
+});
+app.post("/user/login", (req, res) => {
+  //not using userAuth
+  res.send("User Login Success");
 });
 
 app.listen(3000, function () {
