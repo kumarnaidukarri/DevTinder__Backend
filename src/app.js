@@ -1,25 +1,23 @@
 const express = require("express");
 const app = express();
 
-const { adminAuth, userAuth } = require("./middlewares/auth.js");
+// 1.TRY-CATCH Error Handling
+app.get("/userData", (req, res) => {
+  try {
+    //DB logic
+    res.send("Data sent");
+  } catch (err) {
+    res.send("some error occurred");
+  }
+});
 
-// USE(), adminAuth is used for all "admin routes".
-app.use("/admin", adminAuth);
-app.get("/admin/getAllData", (req, res) => {
-  res.send("All Data Sent");
-});
-app.get("/admin/deleteUser", (req, res) => {
-  res.send("Deleted a user");
-});
-
-// userAuth is used for some specific "user routes".
-app.get("/user", userAuth, (req, res) => {
-  //using userAuth
-  res.send("User Data Sent");
-});
-app.post("/user/login", (req, res) => {
-  //not using userAuth
-  res.send("User Login Success");
+// 2.Global Error Handling Middleware
+// it must be kept at the end, after all routes.
+app.use((err, req, res, next) => {
+  if (err) {
+    console.log("Error occurred"); //log for developer
+    res.status(500).send("Something went wrong");
+  }
 });
 
 app.listen(3000, function () {
