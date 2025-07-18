@@ -2,10 +2,8 @@ const mongoose = require("mongoose");
 
 // 'Schema' defines what properties/attributes do our 'collection' have
 const userSchema = new mongoose.Schema({
-  firstName: { typeof: String },
-  lastName: { typeof: String },
-  gender: String,
-  age: Number,
+  firstName: { type: String },
+  lastName: { type: String },
   email: String,
   password: String,
 });
