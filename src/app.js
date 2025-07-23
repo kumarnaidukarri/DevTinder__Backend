@@ -1,4 +1,5 @@
 const express = require("express");
+const validator = require("validator"); //tool for email,url,password validation
 const { connectDB } = require("./config/database.js");
 const { userModel } = require("./models/user.js");
 
@@ -45,10 +46,23 @@ app.get("/feed", async (req, res) => {
 });
 
 // Update API - update user by id
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params?.userId;
   const data = req.body;
   try {
+    // API-Level Data Validation / Data Sanitization
+    const ALLOWED_UPDATES = ["age", "gender", "skills", "about", "photoUrl"];
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      ALLOWED_UPDATES.includes(k)
+    );
+    if (!isUpdateAllowed) {
+      throw new Error("Update not allowed");
+    }
+    if (data.skills?.length > 10) {
+      throw new Error("Skills can't be more than 10");
+    }
+
+    //
     const user = await userModel.findByIdAndUpdate({ _id: userId }, data, {
       returnDocument: "after",
       runValidators: true,

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator"); //tool for email,url,password validation
 
 // 'Schema' defines what properties/attributes do our 'collection' have
 const userSchema = new mongoose.Schema(
@@ -11,8 +12,27 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      validate(value) {
+        //Database Schema-Level Data Validation
+        if (!validator.isEmail(value)) {
+          throw new Error("Invalid email address: " + value);
+        }
+      },
     },
-    password: { type: String, required: true, minLength: 6, maxLength: 25 },
+    password: {
+      type: String,
+      required: true,
+      validate(value) {
+        //Database Schema-Level Data Validation
+        if (!validator.isStrongPassword(value)) {
+          throw new Error(
+            "Enter a Strong Password: " +
+              value +
+              "\n note:- Password should be atleast  8 characters length, 1 uppercase, 1 lowercase, 1 number, 1 special symbol."
+          );
+        }
+      },
+    },
     age: { type: Number, min: 18 },
     gender: {
       type: String,
@@ -26,6 +46,12 @@ const userSchema = new mongoose.Schema(
     photoUrl: {
       type: String,
       default: "https://geographyandyou.com/images/user-profile.png",
+      validate(value) {
+        //Database Schema-Level Data Validation
+        if (!validator.isURL(value)) {
+          throw new Error("Invalid Photo URL: " + value);
+        }
+      },
     },
     skills: { type: [String] },
   },
