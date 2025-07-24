@@ -3,11 +3,11 @@ const app = express();
 const { connectDB } = require("./config/database.js");
 const { userModel } = require("./models/user.js");
 const { validateSignUpData } = require("./utils/validation.js");
-const bcrypt = require("bcrypt"); // 'bcrypt' Library Npm for Password Encryption Decryption
-
+const bcrypt = require("bcrypt"); //'bcrypt' Library Npm for Password Encryption Decryption
+const validator = require("validator"); //'validator' Library
 app.use(express.json()); // middleware converts JSON data into Javascript object
 
-// Post API - insert user data into Database
+// Signup API - insert user data into Database
 app.post("/signup", async (req, res) => {
   try {
     // Validation of data
@@ -28,7 +28,34 @@ app.post("/signup", async (req, res) => {
     await userIns.save(); //data will save into Database
     res.send("User added Successfully ...");
   } catch (err) {
-    res.status(400).send("Error : " + err.message);
+    res.status(400).send("Error: " + err.message);
+  }
+});
+
+// Login API - user login using {email, password}
+app.post("/login", async (req, res) => {
+  try {
+    // Email validation
+    const { emailId, password } = req.body;
+    if (!validator.isEmail(emailId)) {
+      throw new Error("Email is invalid!");
+    }
+
+    // Finding User in DB
+    const user = await userModel.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+
+    // Password comparing
+    const isPasswordValid = await bcrypt.compare(password, user.password); //(password,HashedPassword)
+    if (isPasswordValid) {
+      res.send("Login Success");
+    } else {
+      throw new Error("Invalid credentials");
+    }
+  } catch (err) {
+    res.status(400).send("Error: " + err.message);
   }
 });
 
