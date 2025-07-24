@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const validator = require("validator"); //tool for email,url,password validation
+const validator = require("validator"); //Library for email,url,password validation
 
 // 'Schema' defines what properties/attributes do our 'collection' have
 const userSchema = new mongoose.Schema(
@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
           throw new Error(
             "Enter a Strong Password: " +
               value +
-              "\n note:- Password should be atleast  8 characters length, 1 uppercase, 1 lowercase, 1 number, 1 special symbol."
+              "\n note:- Password should be atleast 8 characters length, 1 uppercase, 1 lowercase, 1 number, 1 special symbol."
           );
         }
       },

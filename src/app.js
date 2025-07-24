@@ -1,22 +1,34 @@
 const express = require("express");
-const validator = require("validator"); //tool for email,url,password validation
+const app = express();
 const { connectDB } = require("./config/database.js");
 const { userModel } = require("./models/user.js");
-
-const app = express();
+const { validateSignUpData } = require("./utils/validation.js");
+const bcrypt = require("bcrypt"); // 'bcrypt' Library Npm for Password Encryption Decryption
 
 app.use(express.json()); // middleware converts JSON data into Javascript object
 
-// Post API - insert user into Database
+// Post API - insert user data into Database
 app.post("/signup", async (req, res) => {
-  // Creating a new instance of the User model
   try {
-    // req.body = {firstName:"ram",lastName:"kumar",emailId:"ram@123.com",password:"abcde"}
-    let userIns = userModel(req.body);
+    // Validation of data
+    validateSignUpData(req);
+    const { firstName, lastName, emailId, password } = req.body;
+
+    // Encrypt the password
+    const passwordHash = await bcrypt.hash(password, 10);
+    console.log(passwordHash);
+
+    // Creating a new instance of the User model
+    let userIns = userModel({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
     await userIns.save(); //data will save into Database
     res.send("User added Successfully ...");
   } catch (err) {
-    res.status(400).send("Error saving the user: " + err.message);
+    res.status(400).send("Error : " + err.message);
   }
 });
 
@@ -31,7 +43,7 @@ app.get("/user", async (req, res) => {
       res.send(user);
     }
   } catch (err) {
-    res.status(400).send("Something  went wrong");
+    res.status(400).send("Something went wrong");
   }
 });
 
@@ -41,7 +53,7 @@ app.get("/feed", async (req, res) => {
     const users = await userModel.find({});
     res.send(users);
   } catch (err) {
-    res.status(400).send("Something  went wrong");
+    res.status(400).send("Something went wrong");
   }
 });
 
@@ -81,7 +93,7 @@ app.delete("/user", async (req, res) => {
     const user = await userModel.findByIdAndDelete({ _id: userId });
     res.send("User deleted successfully");
   } catch (err) {
-    res.status(400).send("Something  went wrong");
+    res.status(400).send("Something went wrong");
   }
 });
 
