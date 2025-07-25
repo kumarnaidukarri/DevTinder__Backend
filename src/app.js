@@ -3,9 +3,13 @@ const app = express();
 const { connectDB } = require("./config/database.js");
 const { userModel } = require("./models/user.js");
 const { validateSignUpData } = require("./utils/validation.js");
-const bcrypt = require("bcrypt"); //'bcrypt' Library Npm for Password Encryption Decryption
+const bcrypt = require("bcrypt"); //'bcrypt' Library for Password Encryption Decryption
 const validator = require("validator"); //'validator' Library
+const cookieParser = require("cookie-parser"); //'cookie-parser' Library
+const jwt = require("jsonwebtoken"); //'jsonwebtoken' Library
+
 app.use(express.json()); // middleware converts JSON data into Javascript object
+app.use(cookieParser()); // middleware parses Cookies from Request object
 
 // Signup API - insert user data into Database
 app.post("/signup", async (req, res) => {
@@ -16,7 +20,6 @@ app.post("/signup", async (req, res) => {
 
     // Encrypt the password
     const passwordHash = await bcrypt.hash(password, 10);
-    console.log(passwordHash);
 
     // Creating a new instance of the User model
     let userIns = userModel({
@@ -44,16 +47,43 @@ app.post("/login", async (req, res) => {
     // Finding User in DB
     const user = await userModel.findOne({ emailId: emailId });
     if (!user) {
-      throw new Error("Invalid credentials");
+      throw new Error("User not registered.");
     }
 
     // Password comparing
     const isPasswordValid = await bcrypt.compare(password, user.password); //(password,HashedPassword)
     if (isPasswordValid) {
+      // Create a JWT Token
+      const token = await jwt.sign({ _id: user._id }, "DevTinder"); //sign(data,secretKey)
+      // Add the Token to Cookie and send the response back to user
+      res.cookie("token", token);
       res.send("Login Success");
     } else {
       throw new Error("Invalid credentials");
     }
+  } catch (err) {
+    res.status(400).send("Error: " + err.message);
+  }
+});
+
+// Profile API - get user profile data
+app.get("/profile", async (req, res) => {
+  try {
+    const cookies = req.cookies; //{c1:v1, c2:v2, ...}
+    const { token } = cookies;
+    if (!token) {
+      throw new Error("Invalid Token");
+    }
+
+    // Validate my Token
+    const decodedMessage = await jwt.verify(token, "DevTinder"); //verify(token,secretKey)
+    const { _id } = decodedMessage;
+
+    const user = await userModel.findById(_id);
+    if (!user) {
+      throw new Error("User does not exist");
+    }
+    res.send(user);
   } catch (err) {
     res.status(400).send("Error: " + err.message);
   }
