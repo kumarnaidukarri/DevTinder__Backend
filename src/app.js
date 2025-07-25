@@ -56,9 +56,14 @@ app.post("/login", async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password); //(password,HashedPassword)
     if (isPasswordValid) {
       // Create a JWT Token
-      const token = await jwt.sign({ _id: user._id }, "DevTinder"); //sign(data,secretKey)
+      const token = await jwt.sign({ _id: user._id }, "DevTinder", {
+        expiresIn: "1d",
+      }); //sign(data,secretKey,options)
+
       // Add the Token to Cookie and send the response back to user
-      res.cookie("token", token);
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      }); //cookie with 1day expiry
       res.send("Login Success!!!");
     } else {
       throw new Error("Invalid credentials");
@@ -76,6 +81,15 @@ app.get("/profile", userAuth, async (req, res) => {
   } catch (err) {
     res.status(400).send("Error: " + err.message);
   }
+});
+
+// SendConnectionRequest - API
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+  // Sending a connection request
+  const user = req.user;
+  console.log("Sending a connection request");
+
+  res.send(user.firstName + " Sent the connection request!");
 });
 
 connectDB()
