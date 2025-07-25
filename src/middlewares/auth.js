@@ -1,23 +1,30 @@
-const adminAuth = (req, res, next) => {
-  console.log("Admin Auth is checking ...");
-  const token = "xyz"; //client token
-  const isAdminAuthorized = token === "xyz";
-  if (!isAdminAuthorized) {
-    res.status(401).send("Unauthorized request");
-  } else {
-    //auth verified
-    next(); //calls next middleware
+// Authentication Middleware
+const jwt = require("jsonwebtoken"); //'jsonwebtoken' Library
+const { userModel } = require("../models/user.js");
+
+const userAuth = async (req, res, next) => {
+  try {
+    // Read the Token from req cookies
+    const { token } = req.cookies; // {c1:v1,c2:v2,...}
+    if (!token) {
+      throw new Error("Token is not valid!!!");
+    }
+
+    // Validate the Token
+    const decodedObj = await jwt.verify(token, "DevTinder");
+    const { _id } = decodedObj;
+
+    // Find the user
+    const user = await userModel.findById(_id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    res.status(400).send("Error: " + err.message);
   }
 };
-const userAuth = (req, res, next) => {
-  console.log("User Auth is checking ...");
-  const token = "abc"; //client token
-  const isUserAuthorized = token === "abc";
-  if (!isUserAuthorized) {
-    res.status(401).send("Unauthorized request");
-  } else {
-    //auth verified
-    next(); //calls next middleware
-  }
-};
-module.exports = { adminAuth, userAuth };
+
+module.exports = { userAuth };
