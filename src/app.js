@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+
 const { connectDB } = require("./config/database.js");
 const { userModel } = require("./models/user.js");
 const { validateSignUpData } = require("./utils/validation.js");
@@ -53,17 +54,16 @@ app.post("/login", async (req, res) => {
     }
 
     // Password comparing
-    const isPasswordValid = await bcrypt.compare(password, user.password); //(password,HashedPassword)
+    const isPasswordValid = await user.validatePassword(password);
     if (isPasswordValid) {
       // Create a JWT Token
-      const token = await jwt.sign({ _id: user._id }, "DevTinder", {
-        expiresIn: "1d",
-      }); //sign(data,secretKey,options)
+      const token = await user.getJWT();
 
       // Add the Token to Cookie and send the response back to user
       res.cookie("token", token, {
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
       }); //cookie with 1day expiry
+
       res.send("Login Success!!!");
     } else {
       throw new Error("Invalid credentials");
@@ -83,12 +83,11 @@ app.get("/profile", userAuth, async (req, res) => {
   }
 });
 
-// SendConnectionRequest - API
+// SendConnectionRequest API -
 app.post("/sendConnectionRequest", userAuth, async (req, res) => {
   // Sending a connection request
   const user = req.user;
   console.log("Sending a connection request");
-
   res.send(user.firstName + " Sent the connection request!");
 });
 

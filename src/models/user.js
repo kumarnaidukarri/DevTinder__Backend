@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
-const validator = require("validator"); //Library for email,url,password validation
+const validator = require("validator"); //'validator' Library
+const bcrypt = require("bcrypt"); //'bcrypt' Library
+const jwt = require("jsonwebtoken"); //'jsonwebtoken' Library
 
 // 'Schema' defines what properties/attributes do our 'collection' have
 const userSchema = new mongoose.Schema(
@@ -57,6 +59,26 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Defining Instance methods in the userSchema - HELPER Methods
+userSchema.methods.getJWT = async function () {
+  const user = this;
+  // Create a JWT Token
+  const token = await jwt.sign({ _id: user._id }, "DevTinder", {
+    expiresIn: "1d",
+  });
+  return token;
+};
+userSchema.methods.validatePassword = async function (passwordInputByUser) {
+  const user = this;
+  const hashedPassword = user.password;
+  let isPasswordValid = await bcrypt.compare(
+    passwordInputByUser,
+    hashedPassword
+  ); //(password,HashedPassword)
+  return isPasswordValid;
+};
+
 // to use a Schema, we need a 'Model'
 const userModel = mongoose.model("User", userSchema);
 
