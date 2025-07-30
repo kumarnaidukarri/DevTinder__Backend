@@ -4,6 +4,7 @@ const requestRouter = express.Router(); // request Router
 const { userAuth } = require("../middlewares/auth.js"); //Authentication Middleware
 const { connectionRequestModel } = require("../models/connectionRequest.js");
 const { userModel } = require("../models/user.js");
+const { connect } = require("mongoose");
 
 // Send Connection Request API -
 requestRouter.post(
@@ -52,6 +53,46 @@ requestRouter.post(
           req.user.firstName + " is " + status + " in " + toUser.firstName,
         data,
       }); //res sending
+    } catch (err) {
+      res.status(400).send("Error: " + err.message);
+    }
+  }
+);
+
+// Review Connection Request API -
+requestRouter.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      // loggedId == toUserId,  status = interested
+      // request id should be valid present in DB
+      /* A(fromId) sent request to B(toId). B has to logged in to accept request */
+
+      const loggedInUser = req.user;
+      const { status, requestId } = req.params;
+
+      const allowedStatus = ["accepted", "rejected"];
+      if (!allowedStatus.includes(status)) {
+        return res.status(400).json({ message: "Status not allowed!" });
+      }
+
+      const connectionRequest = await connectionRequestModel.findOne({
+        _id: requestId,
+        toUserId: loggedInUser._id,
+        status: "interested",
+      });
+
+      if (!connectionRequest) {
+        return res
+          .status(400)
+          .json({ message: "Connection request not found" });
+      }
+
+      //
+      connectionRequest.status = status;
+      const data = await connectionRequest.save();
+      res.json({ message: "Connection request " + status, data });
     } catch (err) {
       res.status(400).send("Error: " + err.message);
     }
