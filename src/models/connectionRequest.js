@@ -22,8 +22,15 @@ const connectionRequestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+/* Compound Indexing - for quering with multiple fields. 1 means Ascending, -1 means Descending
+    Syntax: Schema.index{ field1Name:1, field2Name:1 }; 
+    Ex: userSchema.index({firstName:1, lastName:1}); 
+        users.find({firstName:'Ram', lastName:'Kumar'}); -> faster search  
+*/
+connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
+
 // "Pre" Middleware - executes before the save() method
-connectionRequestSchema.pre("save", function () {
+connectionRequestSchema.pre("save", function (next) {
   // Check if the fromUserId is same as toUserId
   const connectionRequest = this;
   if (connectionRequest.fromUserId.equals(connectionRequest.toUserId)) {
