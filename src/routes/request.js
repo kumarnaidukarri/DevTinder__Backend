@@ -2,9 +2,8 @@ const express = require("express");
 const requestRouter = express.Router(); // request Router
 
 const { userAuth } = require("../middlewares/auth.js"); //Authentication Middleware
-const { connectionRequestModel } = require("../models/connectionRequest.js");
-const { userModel } = require("../models/user.js");
-const { connect } = require("mongoose");
+const connectionRequestModel = require("../models/connectionRequest.js");
+const userModel = require("../models/user.js");
 
 // Send Connection Request API -
 requestRouter.post(

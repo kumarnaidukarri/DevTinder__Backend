@@ -4,7 +4,7 @@ const authRouter = express.Router(); // auth Router
 const bcrypt = require("bcrypt"); //'bcrypt' Library
 const validator = require("validator"); //'validator' Library
 const { validateSignUpData } = require("../utils/validation.js");
-const { userModel } = require("../models/user.js");
+const userModel = require("../models/user.js");
 
 // Signup API - insert user data into Database
 authRouter.post("/signup", async (req, res) => {

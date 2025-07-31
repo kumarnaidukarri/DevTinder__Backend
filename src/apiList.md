@@ -6,7 +6,7 @@
 - POST /logout
 
 ## profileRouter
-- GET /profile/view
+- GET   /profile/view
 - PATCH /profile/edit
 - PATCH /profile/password
 
@@ -14,12 +14,12 @@
 - POST /request/send/:status/:userId
 - Post /request/review/:status/:requestId
 
-  send status   : interested, ignored
-  review status : accepted, rejected 
+  send status : interested, ignored
+  review status : accepted, rejected
 
 ## userRouter:
+- GET /users/requests
 - GET /users/connections
-- GET /users/requests/received
 - GET /users/feed - Gets you the profiles of other users on platform
 
 connection status: ignore(pass), interested(like), accepted, rejected
