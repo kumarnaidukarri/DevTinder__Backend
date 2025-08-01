@@ -65,7 +65,7 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
   }
 });
 
-// Feed API
+// Feed API with Pagination - /feed?page=2&limit=10
 userRouter.get("/feed", userAuth, async (req, res) => {
   try {
     /* User should see all user profile cards except:
@@ -75,6 +75,11 @@ userRouter.get("/feed", userAuth, async (req, res) => {
      3. already sent the connection request
     */
     const loggedInUser = req.user;
+
+    const page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    limit = limit > 50 ? 50 : limit; // data sanitize
+    const skip = (page - 1) * limit;
 
     // Find all connection requests (sent + recieved)
     const connectionRequests = await connectionRequestModel
@@ -96,13 +101,28 @@ userRouter.get("/feed", userAuth, async (req, res) => {
           { _id: { $ne: loggedInUser._id } },
         ],
       })
-      .select(USER_SAFE_DATA);
+      .select(USER_SAFE_DATA)
+      .skip(skip)
+      .limit(limit);
     // 'select([field1,field2,...])' means it selects only 'mentioned Fields' from Documents.
-
-    res.send(connectionRequests);
+    // skip(n) - skips first n documents, limit(n) - gives you 'n' documents.
+    res.json({ data: users });
   } catch (err) {
     res.status(400).send("Error: " + err.message);
   }
 });
+
+/*
+  Pagination in mongoDb: 
+   limit(n) -  how many documents you want 
+   skip(n)  -  how many you want to skip from First starting.
+
+  Scenario: In feed api
+   /feed?page=1&limit=10 => 1-10  => .skip(0)  & .limit(10)
+   /feed?page=2&limit=10 => 11-20 => .skip(10) & .limit(10)
+   /feed?page=3&limit=10 => 21-30 => .skip(20) & .limit(10)
+
+  formula: skip = (page-1)*limit
+ */
 
 module.exports = userRouter;
